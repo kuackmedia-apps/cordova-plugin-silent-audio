@@ -27,6 +27,11 @@ import AVFoundation
         }
     }
 
+    @objc func pause() {
+        player?.pause()
+        print("Silent audio paused")
+    }
+
     @objc func stop() {
         player?.stop()
         player = nil
