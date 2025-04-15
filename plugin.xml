@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<plugin id="cordova-plugin-silent-audio" version="1.0.0" xmlns="http://apache.org/cordova/ns/plugins/1.0" xmlns:cdv="http://cordova.apache.org/ns/1.0">
+<plugin id="cordova-plugin-silent-audio" version="1.0.1" xmlns="http://apache.org/cordova/ns/plugins/1.0">
   <name>Silent Audio</name>
-  <description>Play silent audio in loop to keep AVAudioSession active</description>
+  <description>Silent audio playback for background audio session</description>
   <platform name="ios">
-    <source-file src="src/ios/SilentAudioPlugin.swift" />
-    <source-file src="src/ios/SilentAudioManager.swift" />
+    <source-file src="src/ios/CDVSilentAudioPlugin.m" />
+    <header-file src="src/ios/CDVSilentAudioPlugin.h" />
     <resource-file src="silent.mp3" />
     <framework src="AVFoundation.framework" />
   </platform>
