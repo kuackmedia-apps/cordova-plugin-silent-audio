@@ -1,0 +1,21 @@
+{
+  "name": "cordova-plugin-silent-audio",
+  "version": "1.0.0",
+  "description": "Plugin Cordova para reproducir un audio silencioso en iOS y mantener activa la sesi\u00f3n de audio.",
+  "cordova": {
+    "id": "cordova-plugin-silent-audio",
+    "platforms": [
+      "ios"
+    ]
+  },
+  "keywords": [
+    "cordova",
+    "plugin",
+    "ios",
+    "audio",
+    "silent",
+    "background"
+  ],
+  "author": "Tu Nombre o Empresa",
+  "license": "MIT"
+}
