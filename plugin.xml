@@ -2,13 +2,21 @@
 <plugin id="cordova-plugin-silent-audio" version="1.0.1" xmlns="http://apache.org/cordova/ns/plugins/1.0">
   <name>Silent Audio</name>
   <description>Silent audio playback for background audio session</description>
+
+  <js-module src="www/silentAudio.js" name="SilentAudio">
+    <clobbers target="SilentAudio" />
+  </js-module>
+
   <platform name="ios">
+    <config-file target="config.xml" parent="/*">
+      <feature name="CDVSilentAudioPlugin">
+        <param name="ios-package" value="CDVSilentAudioPlugin"/>
+      </feature>
+    </config-file>
+
     <source-file src="src/ios/CDVSilentAudioPlugin.m" />
     <header-file src="src/ios/CDVSilentAudioPlugin.h" />
     <resource-file src="silent.mp3" />
     <framework src="AVFoundation.framework" />
   </platform>
-  <js-module src="www/silentAudio.js" name="SilentAudio">
-    <clobbers target="SilentAudio" />
-  </js-module>
 </plugin>
