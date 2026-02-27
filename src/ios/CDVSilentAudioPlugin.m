@@ -26,7 +26,10 @@
 
     } else if (type == AVAudioSessionInterruptionTypeEnded) {
         NSError *error = nil;
-        [[AVAudioSession sharedInstance] setCategory:AVAudioSessionCategoryPlayback error:&error];
+        AVAudioSessionCategoryOptions options = AVAudioSessionCategoryOptionAllowAirPlay
+                                              | AVAudioSessionCategoryOptionAllowBluetooth
+                                              | AVAudioSessionCategoryOptionAllowBluetoothA2DP;
+        [[AVAudioSession sharedInstance] setCategory:AVAudioSessionCategoryPlayback withOptions:options error:&error];
         [[AVAudioSession sharedInstance] setActive:YES error:&error];
 
         if (error == nil && self.audioPlayer) {
@@ -41,7 +44,10 @@
 - (void)startSilentAudio:(CDVInvokedUrlCommand*)command {
     [self.commandDelegate runInBackground:^{
         NSError *error = nil;
-        [[AVAudioSession sharedInstance] setCategory:AVAudioSessionCategoryPlayback error:&error];
+        AVAudioSessionCategoryOptions options = AVAudioSessionCategoryOptionAllowAirPlay
+                                              | AVAudioSessionCategoryOptionAllowBluetooth
+                                              | AVAudioSessionCategoryOptionAllowBluetoothA2DP;
+        [[AVAudioSession sharedInstance] setCategory:AVAudioSessionCategoryPlayback withOptions:options error:&error];
         [[AVAudioSession sharedInstance] setActive:YES error:&error];
 
         if (!self.audioPlayer) {
