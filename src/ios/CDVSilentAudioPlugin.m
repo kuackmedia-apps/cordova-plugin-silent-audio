@@ -2,6 +2,7 @@
 
 @interface CDVSilentAudioPlugin ()
 @property (nonatomic, strong) AVAudioPlayer *audioPlayer;
+@property (nonatomic, assign) BOOL userStopped;
 @end
 
 @implementation CDVSilentAudioPlugin
@@ -9,7 +10,6 @@
 - (void)pluginInitialize {
     [super pluginInitialize];
 
-    // Observador claramente para interrupciones de audio
     [[NSNotificationCenter defaultCenter] addObserver:self
                                              selector:@selector(audioSessionInterrupted:)
                                                  name:AVAudioSessionInterruptionNotification
@@ -21,51 +21,42 @@
     AVAudioSessionInterruptionType type = [info[AVAudioSessionInterruptionTypeKey] unsignedIntegerValue];
 
     if (type == AVAudioSessionInterruptionTypeBegan) {
-        NSLog(@"🔔 Interrupción de audio iniciada, pausando claramente audio silencioso.");
+        NSLog(@"🔔 Silent audio: interruption began, pausing.");
         [self.audioPlayer pause];
 
     } else if (type == AVAudioSessionInterruptionTypeEnded) {
-        NSError *error = nil;
-        AVAudioSessionCategoryOptions options = AVAudioSessionCategoryOptionAllowAirPlay
-                                              | AVAudioSessionCategoryOptionAllowBluetooth
-                                              | AVAudioSessionCategoryOptionAllowBluetoothA2DP;
-        [[AVAudioSession sharedInstance] setCategory:AVAudioSessionCategoryPlayback withOptions:options error:&error];
-        [[AVAudioSession sharedInstance] setActive:YES error:&error];
-
-        if (error == nil && self.audioPlayer) {
-            NSLog(@"🔔 Interrupción claramente terminada, reanudando claramente audio silencioso.");
+        if (!self.userStopped && self.audioPlayer) {
             [self.audioPlayer play];
+            NSLog(@"🔔 Silent audio: interruption ended, resumed.");
         } else {
-            NSLog(@"❌ Error reactivando audio tras interrupción: %@", error);
+            NSLog(@"🔔 Silent audio: interruption ended, not resumed (userStopped=%d).", self.userStopped);
         }
     }
 }
 
 - (void)startSilentAudio:(CDVInvokedUrlCommand*)command {
     [self.commandDelegate runInBackground:^{
-        NSError *error = nil;
-        AVAudioSessionCategoryOptions options = AVAudioSessionCategoryOptionAllowAirPlay
-                                              | AVAudioSessionCategoryOptionAllowBluetooth
-                                              | AVAudioSessionCategoryOptionAllowBluetoothA2DP;
-        [[AVAudioSession sharedInstance] setCategory:AVAudioSessionCategoryPlayback withOptions:options error:&error];
-        [[AVAudioSession sharedInstance] setActive:YES error:&error];
-
         if (!self.audioPlayer) {
+            NSError *error = nil;
             NSString *soundPath = [[NSBundle mainBundle] pathForResource:@"silent" ofType:@"mp3"];
             NSURL *soundURL = [NSURL fileURLWithPath:soundPath];
 
             self.audioPlayer = [[AVAudioPlayer alloc] initWithContentsOfURL:soundURL error:&error];
+            if (error || !self.audioPlayer) {
+                NSLog(@"❌ Error creating silent audio player: %@", error);
+                CDVPluginResult* result = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR
+                                                            messageAsString:[error localizedDescription]];
+                [self.commandDelegate sendPluginResult:result callbackId:command.callbackId];
+                return;
+            }
             self.audioPlayer.numberOfLoops = -1;
             self.audioPlayer.volume = 0.0;
             [self.audioPlayer prepareToPlay];
         }
 
-        if (!error && self.audioPlayer) {
-            [self.audioPlayer play];
-            NSLog(@"✅ Silent audio claramente iniciado.");
-        } else {
-            NSLog(@"❌ Error iniciando silent audio: %@", error);
-        }
+        self.userStopped = NO;
+        [self.audioPlayer play];
+        NSLog(@"✅ Silent audio started.");
 
         CDVPluginResult* result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
         [self.commandDelegate sendPluginResult:result callbackId:command.callbackId];
@@ -75,8 +66,9 @@
 - (void)pauseSilentAudio:(CDVInvokedUrlCommand*)command {
     [self.commandDelegate runInBackground:^{
         if (self.audioPlayer && self.audioPlayer.isPlaying) {
+            self.userStopped = YES;
             [self.audioPlayer pause];
-            NSLog(@"🔔 Audio silencioso pausado.");
+            NSLog(@"🔔 Silent audio paused.");
         }
 
         CDVPluginResult* result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
@@ -87,10 +79,10 @@
 - (void)stopSilentAudio:(CDVInvokedUrlCommand*)command {
     [self.commandDelegate runInBackground:^{
         if (self.audioPlayer) {
+            self.userStopped = YES;
             [self.audioPlayer stop];
             self.audioPlayer = nil;
-            [[AVAudioSession sharedInstance] setActive:NO error:nil];
-            NSLog(@"🔔 Audio silencioso claramente detenido.");
+            NSLog(@"🔔 Silent audio stopped.");
         }
 
         CDVPluginResult* result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
